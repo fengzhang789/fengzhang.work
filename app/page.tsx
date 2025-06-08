@@ -1,103 +1,105 @@
-import Image from "next/image";
+import { GitHubDark, LinkedIn } from 'developer-icons';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const blogPosts = [
+    {
+      title: "Diving into distributed systems at AWS",
+      date: "coming soon",
+      link: "#"
+    },
+    {
+      title: "Building and travelling the world with ETHGlobal",
+      date: "coming soon",
+      link: "#"
+    },
+    {
+      title: "Write optimized key-value databases: Memtables",
+      date: "coming soon",
+      link: "#"
+    },
+  ];
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  return (
+    <div className="min-h-screen bg-white">
+      <main className="max-w-4xl mx-auto px-4 py-16 sm:px-6 sm:py-24">
+        <div className="space-y-12">
+          {/* Header Section */}
+          <div className="space-y-4">
+            <h1 className="text-4xl font-serif font-medium tracking-tight text-gray-900">
+              Hi, I&apos;m Feng
+            </h1>
+            <p className="text-lg text-gray-600">
+              I&apos;m a Computer Science student at the University of Waterloo. I&apos;m currently working as a SDE intern at{' '}
+              <a href="https://aws.amazon.com/dynamodb/" className="text-blue-600 hover:text-blue-800 hover:underline">AWS DynamoDB</a>, and I&apos;ve
+              previously worked at{' '}
+              <a href="https://ethglobal.com" className="text-blue-600 hover:text-blue-800 hover:underline">ETHGlobal</a> and{' '}
+              <a href="https://habtech.ca" className="text-blue-600 hover:text-blue-800 hover:underline">Habtech Communications</a>.
+            </p>
+          </div>
+
+          {/* About Section */}
+          <div className="space-y-2">
+            <p className="text-lg text-gray-600">
+              I&apos;m passionate about everything related to databases and distributed
+              systems. I&apos;m currently building my own key value database, NexusKV. In my free
+              time, I go to the gym, cook, bake, occasionally read, and honestly, sleep a lot. I&apos;ve
+              also been trying to get into playing volleyball recently.
+            </p>
+          </div>
+
+          {/* Social Links */}
+          <div className="flex space-x-6">
+            <a href="https://github.com/fengzhang789" className="text-gray-600 hover:text-gray-900 transition-all duration-200 hover:scale-110">
+              <span className="sr-only">GitHub</span>
+              <GitHubDark className="h-6 w-6" />
+            </a>
+            <a href="https://linkedin.com/in/fengzhang12" className="text-gray-600 hover:text-gray-900 transition-all duration-200 hover:scale-110">
+              <span className="sr-only">LinkedIn</span>
+              <LinkedIn className="h-6 w-6" />
+            </a>
+          </div>
+
+          {/* Key Values */}
+          <div className='space-y-8'>
+            <h2 className="text-2xl font-medium text-gray-900 mb-4">Core Values</h2>
+            <ol className="list-decimal list-inside space-y-2 text-gray-600 pl-1">
+              <li>Always be learning and growing, even if its by 1% a day</li>
+              <li>Speed matters - ideate, build, and ship fast while producing high quality work (this site was built in 2 hours)</li>
+              <li>You don&apos;t truly understand something until you can teach and build it</li>
+              <li>Be someone you would want to work with</li>
+            </ol>
+          </div>
+
+          {/* Blog Section */}
+          <div>
+            <h2 className="text-2xl font-medium text-gray-900 mb-4">Recent Writing</h2>
+            <div className="space-y-3">
+              {blogPosts.map((post) => (
+                <a 
+                  key={post.title}
+                  href={post.link}
+                  className="block group"
+                >
+                  <div className="flex justify-between items-baseline">
+                    <h3 className="text-gray-600 group-hover:text-gray-900 transition-colors duration-200">{post.title}</h3>
+                    <span className="text-sm text-gray-400 ml-4 shrink-0">{post.date}</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Projects Section */}
+          {/* <div>
+            <h2 className="text-2xl font-medium text-gray-900 mb-8">Projects</h2>
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+              {projects.map((project) => (
+                <ProjectCard key={project.title} {...project} />
+              ))}
+            </div>
+          </div> */}
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
