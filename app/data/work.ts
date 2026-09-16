@@ -35,6 +35,14 @@ export const work: WorkItem[] = [
     fit: "logo",
   },
   {
+    id: "sqldb",
+    name: "SQL Database",
+    sub: "An embedded SQL database in C++ with multi-version concurrency control (MVCC), crash recovery via copy-on-write B+ trees, and a query parser and execution engine for a subset of SQL",
+    period: "2026",
+    href: "https://github.com/fengzhang789/sqldb",
+    art: "db",
+  },
+  {
     id: "aws",
     name: "Amazon Web Services",
     sub: "Software Engineer Intern on DynamoDB Global Tables team",
@@ -44,14 +52,6 @@ export const work: WorkItem[] = [
     alt: "Amazon Web Services",
     fit: "logo",
     plateBg: "#223040",
-  },
-  {
-    id: "sqldb",
-    name: "SQL Database",
-    sub: "An embedded SQL database in C++ with multi-version concurrency control (MVCC), crash recovery via copy-on-write B+ trees, and a query parser and execution engine for a subset of SQL",
-    period: "2025",
-    href: "https://github.com/fengzhang789/sqldb",
-    art: "db",
   },
   {
     id: "hack-the-north",
@@ -75,6 +75,15 @@ export const work: WorkItem[] = [
     fit: "logo",
   },
   {
+    id: "crowdfund",
+    name: "CrowdFund",
+    sub: "Automated AI workflows using AI agents to research markets and execute trades. Won 2nd out of 775 at CMU hackathon for the Story Protocol track",
+    period: "2025",
+    href: "https://github.com/fengzhang789/crowdfund",
+    image: "/images/crowdfund_logo.png",
+    alt: "CrowdFund — TartanHacks '25",
+  },
+  {
     id: "habtech",
     name: "Habtech Communications",
     sub: "Software Developer Intern",
@@ -83,15 +92,6 @@ export const work: WorkItem[] = [
     image: "/images/habtech_logo.jpg",
     alt: "Habtech Communications",
     fit: "logo",
-  },
-  {
-    id: "crowdfund",
-    name: "CrowdFund",
-    sub: "Automated AI workflows using AI agents to research markets and execute trades. Won 2nd out of 775 at CMU hackathon for the Story Protocol track",
-    period: "2025",
-    href: "https://github.com/fengzhang789/crowdfund",
-    image: "/images/crowdfund_logo.png",
-    alt: "CrowdFund — TartanHacks '25",
   },
 ];
 
