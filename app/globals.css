@@ -1,1 +1,210 @@
 @import "tailwindcss";
+
+@theme {
+  /* Night palette: near-black blue base, silver print, one sodium-lamp warm */
+  --color-ink: #05080c;
+  --color-ink-2: #141c26;
+  --color-silver: #dde5ef;
+  --color-silver-dim: #78838f;
+  --color-sodium: #edb04a;
+
+  --font-grotesk: var(--font-grotesk-src), ui-sans-serif, system-ui, sans-serif;
+  --font-bodoni: var(--font-bodoni-src), Georgia, serif;
+}
+
+:root {
+  --grain-light: 0.14;
+  --grain-dark: 0.18;
+  color-scheme: dark;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-ink);
+  color: var(--color-silver);
+  font-family: var(--font-grotesk);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Film grain over the whole surface ---------------------------------- */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
+
+body::after {
+  opacity: var(--grain-light);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1 0 0 0 -0.3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+body::before {
+  opacity: var(--grain-dark);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' seed='23' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 -0.35'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+/* Faint warmth from the top-left, cold cast top-right, vignette below */
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(62rem 44rem at 8% -10%, rgba(237, 176, 74, 0.1), transparent 66%),
+    radial-gradient(48rem 40rem at 96% 2%, rgba(96, 140, 190, 0.08), transparent 62%),
+    radial-gradient(120% 95% at 50% 0%, transparent 42%, rgba(0, 0, 0, 0.72));
+}
+
+/* --- Type ---------------------------------------------------------------- */
+.wordmark {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.6rem;
+  line-height: 1.15;
+  letter-spacing: 0.005em;
+  color: var(--color-silver);
+}
+
+.lede {
+  font-size: 1.0625rem;
+  line-height: 1.38;
+  color: var(--color-silver);
+  max-width: 48ch;
+}
+
+.lede-em {
+  text-decoration: underline;
+  text-decoration-color: rgba(221, 229, 239, 0.3);
+  text-underline-offset: 3px;
+  transition: color 220ms ease, text-decoration-color 220ms ease;
+}
+
+.lede-em:hover,
+.lede-em:focus-visible {
+  color: var(--color-sodium);
+  text-decoration-color: var(--color-sodium);
+}
+
+.muted {
+  color: var(--color-silver-dim);
+}
+
+/* --- Plates (the work images) ------------------------------------------- */
+.plate {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-ink-2);
+  transition: filter 420ms ease;
+}
+
+.plate.has-image {
+  filter: brightness(0.74) saturate(0.85);
+}
+
+/* A logo needs its own light ground: the artwork is dark-on-white with no
+   alpha, so it would vanish against the dark plate. Centred at its natural
+   aspect ratio so the artwork's own margins are preserved. */
+.plate.is-logo {
+  background-color: #fff;
+}
+
+.plate img {
+  display: block;
+}
+
+.plate-empty {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(88% 68% at 28% 6%, rgba(237, 176, 74, 0.07), transparent 62%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(221, 229, 239, 0.03) 0 1px,
+      transparent 1px 9px
+    );
+}
+
+.plate-hint {
+  position: absolute;
+  left: 0.85rem;
+  bottom: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.6875rem;
+  color: rgba(221, 229, 239, 0.24);
+}
+
+.tile-name {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.3rem;
+  letter-spacing: 0.005em;
+  text-underline-offset: 3px;
+  transition: color 280ms ease;
+}
+
+.tile-meta {
+  color: var(--color-silver-dim);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tile:hover .plate.has-image,
+.tile:focus-visible .plate.has-image {
+  filter: brightness(1) saturate(1);
+}
+
+.tile:hover .plate-empty,
+.tile:focus-visible .plate-empty {
+  background-color: rgba(237, 176, 74, 0.04);
+}
+
+.plate-empty {
+  transition: background-color 420ms ease;
+}
+
+.tile:hover .tile-name,
+.tile:focus-visible .tile-name {
+  color: var(--color-sodium);
+  text-decoration: underline;
+}
+
+/* --- Footer -------------------------------------------------------------- */
+.contact-link {
+  color: var(--color-silver-dim);
+  text-underline-offset: 3px;
+  transition: color 220ms ease;
+}
+
+.contact-link:hover,
+.contact-link:focus-visible {
+  color: var(--color-sodium);
+  text-decoration: underline;
+}
+
+/* --- Accessibility floor ------------------------------------------------- */
+a:focus-visible {
+  outline: 2px solid var(--color-sodium);
+  outline-offset: 5px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

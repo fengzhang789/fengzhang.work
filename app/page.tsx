@@ -1,105 +1,75 @@
-import { GitHubDark, LinkedIn } from 'developer-icons';
+import WorkTile from "./components/WorkTile";
+import { GitHubIcon, LinkedInIcon, MailIcon } from "./components/Icons";
+import { work, contact } from "./data/work";
 
 export default function Home() {
-  const blogPosts = [
-    {
-      title: "Diving into distributed systems at AWS",
-      date: "coming soon",
-      link: "#"
-    },
-    {
-      title: "Building and travelling the world with ETHGlobal",
-      date: "coming soon",
-      link: "#"
-    },
-    {
-      title: "Write optimized key-value databases: Memtables",
-      date: "coming soon",
-      link: "#"
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-white">
-      <main className="max-w-4xl mx-auto px-4 py-16 sm:px-6 sm:py-24">
-        <div className="space-y-12">
-          {/* Header Section */}
-          <div className="space-y-4">
-            <h1 className="text-4xl font-serif font-medium tracking-tight text-gray-900">
-              Hi, I&apos;m Feng
-            </h1>
-            <p className="text-lg text-gray-600">
-              I&apos;m a Computer Science student at the University of Waterloo. I&apos;m currently working as a SDE intern at{' '}
-              <a href="https://aws.amazon.com/dynamodb/" className="text-blue-600 hover:text-blue-800 hover:underline">AWS DynamoDB</a>, and I&apos;ve
-              previously worked at{' '}
-              <a href="https://ethglobal.com" className="text-blue-600 hover:text-blue-800 hover:underline">ETHGlobal</a> and{' '}
-              <a href="https://habtech.ca" className="text-blue-600 hover:text-blue-800 hover:underline">Habtech Communications</a>.
-            </p>
-          </div>
-
-          {/* About Section */}
-          <div className="space-y-2">
-            <p className="text-lg text-gray-600">
-              I&apos;m passionate about everything related to databases and distributed
-              systems. I&apos;m currently building my own key value database, NexusKV. In my free
-              time, I go to the gym, cook, bake, occasionally read, and honestly, sleep a lot. I&apos;ve
-              also been trying to get into playing volleyball recently.
-            </p>
-          </div>
-
-          {/* Social Links */}
-          <div className="flex space-x-6">
-            <a href="https://github.com/fengzhang789" className="text-gray-600 hover:text-gray-900 transition-all duration-200 hover:scale-110">
-              <span className="sr-only">GitHub</span>
-              <GitHubDark className="h-6 w-6" />
-            </a>
-            <a href="https://linkedin.com/in/fengzhang12" className="text-gray-600 hover:text-gray-900 transition-all duration-200 hover:scale-110">
-              <span className="sr-only">LinkedIn</span>
-              <LinkedIn className="h-6 w-6" />
-            </a>
-          </div>
-
-          {/* Key Values */}
-          <div className='space-y-8'>
-            <h2 className="text-2xl font-medium text-gray-900 mb-4">Core Values</h2>
-            <ol className="list-decimal list-inside space-y-2 text-gray-600 pl-1">
-              <li>Always be learning and growing, even if its by 1% a day</li>
-              <li>Speed matters - ideate, build, and ship fast while producing high quality work (this site was built in 2 hours)</li>
-              <li>You don&apos;t truly understand something until you can teach and build it</li>
-              <li>Be someone you would want to work with</li>
-            </ol>
-          </div>
-
-          {/* Blog Section */}
+    <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-5 sm:px-8">
+      <main className="flex-1">
+        <header className="mt-14 grid grid-cols-1 items-start gap-10 sm:mt-20 sm:grid-cols-2 sm:gap-4">
           <div>
-            <h2 className="text-2xl font-medium text-gray-900 mb-4">Recent Writing</h2>
-            <div className="space-y-3">
-              {blogPosts.map((post) => (
-                <a 
-                  key={post.title}
-                  href={post.link}
-                  className="block group"
-                >
-                  <div className="flex justify-between items-baseline">
-                    <h3 className="text-gray-600 group-hover:text-gray-900 transition-colors duration-200">{post.title}</h3>
-                    <span className="text-sm text-gray-400 ml-4 shrink-0">{post.date}</span>
-                  </div>
-                </a>
-              ))}
-            </div>
+            <h1 className="wordmark">Feng Zhang</h1>
           </div>
 
-          {/* Projects Section */}
-          {/* <div>
-            <h2 className="text-2xl font-medium text-gray-900 mb-8">Projects</h2>
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
-              {projects.map((project) => (
-                <ProjectCard key={project.title} {...project} />
-              ))}
-            </div>
-          </div> */}
-        </div>
+          <div>
+            <p className="lede">
+              Software Engineer studying{" "}
+              <a
+                className="lede-em"
+                href="https://cs.uwaterloo.ca"
+                target="_blank"
+                rel="noreferrer"
+              >
+                CS @ University of Waterloo
+              </a>
+              . Interested in working on distributed systems, databases, kernels, and
+              networking.
+            </p>
+          </div>
+        </header>
+
+        <section aria-label="Work and projects" className="mt-16 grid grid-cols-1 gap-x-5 gap-y-12 md:grid-cols-2">
+          {work.map((item) => (
+            <WorkTile key={item.id} item={item} />
+          ))}
+        </section>
       </main>
+
+      <footer className="mt-24 flex flex-col gap-4 border-t border-white/[0.06] py-8 text-[0.9375rem] sm:flex-row sm:items-center sm:justify-between">
+        <p className="muted">Feng Zhang</p>
+        <nav className="flex items-center gap-5">
+          <a
+            className="contact-link"
+            href={contact.github}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <GitHubIcon className="h-[1.15rem] w-[1.15rem]" />
+          </a>
+          <a
+            className="contact-link"
+            href={contact.linkedin}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="LinkedIn"
+            title="LinkedIn"
+          >
+            <LinkedInIcon className="h-[1.15rem] w-[1.15rem]" />
+          </a>
+          <a
+            className="contact-link"
+            href={`mailto:${contact.email}`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Email ${contact.email}`}
+            title={contact.email}
+          >
+            <MailIcon className="h-[1.25rem] w-[1.25rem]" />
+          </a>
+        </nav>
+      </footer>
     </div>
   );
 }
