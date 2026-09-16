@@ -16,6 +16,10 @@ export type WorkItem = {
    * its own background, and the artwork then bleeds to the plate edges.
    */
   plateBg?: string;
+  /** Shrinks a "logo" fit further within its inset, e.g. 0.7 = 30% smaller. Defaults to 1. */
+  logoScale?: number;
+  /** A canvas-drawn animation to use instead of a static image. */
+  art?: "db";
 };
 
 /** Most recent first. */
@@ -23,7 +27,7 @@ export const work: WorkItem[] = [
   {
     id: "ura",
     name: "Waterloo Systems & Networking",
-    sub: "Undergraduate Research Assistant on zero-copy networking, with Prof. Martin Karsten",
+    sub: "Undergraduate Research Assistant working on zero-copy networking, high performance memcached benchmarking, and kernel bypass with Prof. Martin Karsten",
     period: "Apr – Sep 2026",
     href: "https://cs.uwaterloo.ca/~mkarsten/",
     image: "/images/uwaterloo_logo.avif",
@@ -33,7 +37,7 @@ export const work: WorkItem[] = [
   {
     id: "aws",
     name: "Amazon Web Services",
-    sub: "Software Engineer Intern on DynamoDB storage and replication",
+    sub: "Software Engineer Intern on DynamoDB Global Tables team",
     period: "May – Dec 2025",
     href: "https://aws.amazon.com/dynamodb/",
     image: "/images/aws_logo.webp",
@@ -42,31 +46,52 @@ export const work: WorkItem[] = [
     plateBg: "#223040",
   },
   {
+    id: "sqldb",
+    name: "SQL Database",
+    sub: "An embedded SQL database in C++ with multi-version concurrency control (MVCC), crash recovery via copy-on-write B+ trees, and a query parser and execution engine for a subset of SQL",
+    period: "2025",
+    href: "https://github.com/fengzhang789/sqldb",
+    art: "db",
+  },
+  {
     id: "hack-the-north",
     name: "Hack the North",
-    sub: "Frontend Organizer (2024) and Backend Organizer (2025) building the web platform that all event attendees see at Canada’s largest hackathon",
+    sub: "Frontend Organizer (2024) and Backend Organizer (2025) building the web platform that event attendees see at Canada’s largest hackathon",
     period: "Mar 2024 – Sep 2025",
-    href: "https://hackthenorth.com",
+    href: "https://2024.hackthenorth.com",
+    image: "/images/hackthenorth_logo.png",
+    alt: "Hack the North",
+    fit: "logo",
+    logoScale: 0.7,
   },
   {
     id: "ethglobal",
     name: "ETHGlobal",
-    sub: "Software Engineer Intern on video infrastructure and search",
+    sub: "Software Engineer Intern",
     period: "Jan – Apr 2025",
     href: "https://ethglobal.com",
+    image: "/images/ethglobal_logo.jpeg",
+    alt: "ETHGlobal",
+    fit: "logo",
   },
   {
     id: "habtech",
     name: "Habtech Communications",
-    sub: "Software Developer Intern building internal tools and CI/CD",
+    sub: "Software Developer Intern",
     period: "Apr – Aug 2024",
     href: "https://habtech.ca",
+    image: "/images/habtech_logo.jpg",
+    alt: "Habtech Communications",
+    fit: "logo",
   },
   {
     id: "crowdfund",
     name: "CrowdFund",
-    sub: "AI trading workflows that placed 2nd of 775 at a CMU hackathon",
+    sub: "Automated AI workflows using AI agents to research markets and execute trades. Won 2nd out of 775 at CMU hackathon for the Story Protocol track",
     period: "2025",
+    href: "https://github.com/fengzhang789/crowdfund",
+    image: "/images/crowdfund_logo.png",
+    alt: "CrowdFund — TartanHacks '25",
   },
 ];
 
