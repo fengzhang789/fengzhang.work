@@ -1,3 +1,4 @@
+import Link from "next/link";
 import WorkTile from "./components/WorkTile";
 import { GitHubIcon, LinkedInIcon, MailIcon } from "./components/Icons";
 import { work, contact } from "./data/work";
@@ -9,6 +10,9 @@ export default function Home() {
         <header className="mt-14 grid grid-cols-1 items-start gap-10 sm:mt-20 sm:grid-cols-2 sm:gap-4">
           <div>
             <h1 className="wordmark">Feng Zhang</h1>
+            <Link href="/writing" className="back-link mt-3 inline-block">
+              Writing →
+            </Link>
           </div>
 
           <div>

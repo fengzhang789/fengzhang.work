@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Schibsted_Grotesk, Bodoni_Moda } from "next/font/google";
+import { Schibsted_Grotesk, Bodoni_Moda, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 
 const grotesk = Schibsted_Grotesk({
@@ -15,6 +15,16 @@ const bodoni = Bodoni_Moda({
   display: "swap",
 });
 
+// Long-form reading face for writing posts — a text serif built for
+// extended reading, distinct from Schibsted Grotesk's UI-chrome duty.
+const sourceSerif = Source_Serif_4({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-serif-src",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Feng Zhang",
   description:
@@ -27,7 +37,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${grotesk.variable} ${bodoni.variable}`}>
+    <html
+      lang="en"
+      className={`${grotesk.variable} ${bodoni.variable} ${sourceSerif.variable}`}
+    >
       <body>
         <div className="atmosphere" aria-hidden="true" />
         {children}

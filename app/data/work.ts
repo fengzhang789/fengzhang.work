@@ -29,7 +29,7 @@ export const work: WorkItem[] = [
     name: "Waterloo Systems & Networking",
     sub: "Undergraduate Research Assistant working on zero-copy networking, high performance memcached benchmarking, and kernel bypass with Prof. Martin Karsten",
     period: "Apr – Sep 2026",
-    href: "https://cs.uwaterloo.ca/~mkarsten/",
+    href: "/writing/is-the-future-of-databases-zero-copy",
     image: "/images/uwaterloo_logo.avif",
     alt: "University of Waterloo",
     fit: "logo",

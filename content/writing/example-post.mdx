@@ -1,0 +1,59 @@
+---
+title: A template for long-form writing
+date: 2026-09-16
+dek: A preview post exercising every element the /writing template supports — headings, links, lists, quotes, code, and images. Safe to delete once real posts exist.
+draft: true
+---
+
+This is body copy set in Source Serif 4 instead of the homepage's Schibsted Grotesk. Grotesks are built for short UI labels — tight, geometric, a little clinical at paragraph length. A text serif like this one carries more of its own rhythm: the letterforms are more differentiated from each other, which is most of why serifs read faster over long stretches on screen.
+
+The rest of the page — colors, spacing, the italic display face for titles, the grain — stays exactly what it is on the home page. Only the reading column changes.
+
+## A second-level heading
+
+Headings switch back to Schibsted Grotesk, set upright and a bit heavier. That's deliberate: the serif carries the reading voice, the grotesk marks structure, and the italic Bodoni is reserved for the post title and the wordmark, the same rule the home page follows for names and titles.
+
+A paragraph can carry **bold text** for emphasis, or a [link out to somewhere](https://www.uwaterloo.ca) that picks up the sodium accent on hover, same as the rest of the site.
+
+### A third-level heading
+
+Use this for a subsection inside a larger section.
+
+Here's an unordered list:
+
+- Zero-copy networking notes
+- MVCC and crash recovery in an embedded database
+- Kernel bypass benchmarking
+
+And an ordered one:
+
+1. Draft the post as an `.mdx` file in `content/writing/`
+2. Drop images in `public/images/writing/`
+3. Reference them with `<Figure src="..." alt="..." caption="..." />`
+
+> Blockquotes sit in italic, dimmer, with a thin sodium rule on the left — for pulling out a quote or an aside without breaking the reading flow.
+
+Inline code like `const x = 1` uses the system monospace stack, and larger snippets get their own block:
+
+```ts
+function readingTime(text: string, wpm = 200): number {
+  const words = text.trim().split(/\s+/).length;
+  return Math.max(1, Math.round(words / wpm));
+}
+```
+
+Images drop in as a `Figure` with an optional caption:
+
+<Figure
+  src="/images/writing/placeholder.svg"
+  alt="Placeholder figure"
+  caption="Swap this for a real screenshot or diagram — captions render in small grotesk beneath the frame."
+/>
+
+Plain markdown images work too, using the alt text as the caption:
+
+![A second placeholder image, captioned from its alt text](/images/writing/placeholder.svg)
+
+---
+
+A horizontal rule, above, for a hard section break — a short private line rather than a page-wide one.

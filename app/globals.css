@@ -10,6 +10,8 @@
 
   --font-grotesk: var(--font-grotesk-src), ui-sans-serif, system-ui, sans-serif;
   --font-bodoni: var(--font-bodoni-src), Georgia, serif;
+  --font-serif: var(--font-serif-src), Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 :root {
@@ -207,4 +209,255 @@ a:focus-visible {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* --- Writing: index list ------------------------------------------------- */
+.back-link {
+  color: var(--color-silver-dim);
+  font-size: 0.875rem;
+  text-underline-offset: 3px;
+  transition: color 220ms ease;
+}
+
+.back-link:hover,
+.back-link:focus-visible {
+  color: var(--color-sodium);
+  text-decoration: underline;
+}
+
+.post-row-title {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.5rem;
+  letter-spacing: 0.005em;
+  transition: color 280ms ease;
+}
+
+.post-row:hover .post-row-title,
+.post-row:focus-visible .post-row-title {
+  color: var(--color-sodium);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.post-row-dek {
+  color: var(--color-silver-dim);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  max-width: 58ch;
+}
+
+.post-row-date {
+  color: var(--color-silver-dim);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* --- Writing: post header ------------------------------------------------- */
+.post-title {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 2.25rem;
+  line-height: 1.15;
+  letter-spacing: 0.002em;
+  color: var(--color-silver);
+}
+
+@media (min-width: 640px) {
+  .post-title {
+    font-size: 2.75rem;
+  }
+}
+
+.post-dek {
+  font-family: var(--font-grotesk);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--color-silver-dim);
+  max-width: 60ch;
+}
+
+.post-meta {
+  color: var(--color-silver-dim);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.post-meta-dot {
+  opacity: 0.5;
+}
+
+/* --- Writing: post body ---------------------------------------------------
+   A dedicated reading face (Source Serif 4) instead of the UI grotesk: the
+   grotesk is tuned for short chrome labels, not paragraphs read for minutes
+   at a stretch. */
+.post-body {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: rgba(221, 229, 239, 0.92);
+  max-width: 42rem;
+}
+
+.post-body > * + * {
+  margin-top: 1.5em;
+}
+
+.post-body p {
+  overflow-wrap: break-word;
+}
+
+.post-body h2,
+.post-body h3 {
+  font-family: var(--font-grotesk);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-silver);
+  margin-top: 2.25em;
+}
+
+.post-body h2 {
+  font-size: 1.375rem;
+}
+
+.post-body h3 {
+  font-size: 1.125rem;
+}
+
+.post-body h2 + *,
+.post-body h3 + * {
+  margin-top: 0.85em;
+}
+
+.post-body strong {
+  color: var(--color-silver);
+  font-weight: 600;
+}
+
+.post-body a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(221, 229, 239, 0.3);
+  text-underline-offset: 3px;
+  transition: color 220ms ease, text-decoration-color 220ms ease;
+}
+
+.post-body a:hover,
+.post-body a:focus-visible {
+  color: var(--color-sodium);
+  text-decoration-color: var(--color-sodium);
+}
+
+.post-body ul,
+.post-body ol {
+  padding-left: 1.375em;
+}
+
+.post-body ul {
+  list-style-type: disc;
+}
+
+.post-body ol {
+  list-style-type: decimal;
+}
+
+.post-body li + li {
+  margin-top: 0.5em;
+}
+
+.post-body li::marker {
+  color: var(--color-silver-dim);
+}
+
+.post-body blockquote {
+  font-style: italic;
+  color: var(--color-silver-dim);
+  border-left: 2px solid rgba(237, 176, 74, 0.4);
+  padding-left: 1.25em;
+}
+
+.post-body hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  width: 3rem;
+  margin-top: 2.5em;
+  margin-bottom: 0.5em;
+}
+
+.post-body code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--color-sodium);
+  background: rgba(221, 229, 239, 0.06);
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+}
+
+.post-body pre {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--color-silver);
+  background: var(--color-ink-2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1.1rem 1.25rem;
+  overflow-x: auto;
+}
+
+.post-body pre code {
+  color: inherit;
+  background: none;
+  padding: 0;
+  font-size: 1em;
+}
+
+.post-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.post-body th,
+.post-body td {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.6em 0.85em;
+  text-align: left;
+  vertical-align: top;
+}
+
+.post-body th {
+  font-family: var(--font-grotesk);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--color-silver);
+  background: var(--color-ink-2);
+}
+
+.post-body td {
+  color: rgba(221, 229, 239, 0.92);
+}
+
+.post-figure-frame {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-ink-2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.post-figure-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.post-figcaption {
+  font-family: var(--font-grotesk);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-silver-dim);
+  margin-top: 0.65rem;
 }

@@ -1,0 +1,163 @@
+---
+title: Is the Future of Databases Zero-Copy?
+date: 2026-09-16
+dek: On devmem/TCP, zero-copy networking techniques, NVMe SSDs with exposed Controller Memory Buffers (CMB), and whether zero-copy networking is the future for storage systems
+draft: false
+---
+
+Over the summer, I worked under [Prof. Martin Karsten](https://cs.uwaterloo.ca/~mkarsten/) in the Systems and Networking group as a Research Assistant. I learned a ton about networking and operating systems under his supervision and I wanted to write this post to share one of the topics I was researching over the summer: zero-copy networking and peer-to-peer DMA.
+
+## What the Heck Is Zero-Copy Networking?
+
+Consider a simple web server that accepts requests from other machines, writes them to an on-disk database, and sends back responses. Packets are what make this possible and the faster the kernel can process them, the faster the server runs.
+
+### The NIC and the Ring Buffer
+
+The Network Interface Card (NIC) connects a machine to the network, converting physical signals off the wire into frame data. But the real bottlenecks emerge in how that data moves from NIC to memory, and how the OS handles it afterward.
+
+To handle high-speed traffic without dropping packets, NICs use **ring buffers.** These are circular queues of memory descriptors allocated in host RAM by the driver (think of the SPSC queue from Operating Systems). When a packet arrives:
+
+1. **DMA (Direct Memory Access):** the NIC reads the next descriptor from the RX ring and writes the raw payload straight into host RAM with no CPU involvement.
+2. **Kernel processing:** the NIC fires an interrupt (or the kernel polls via NAPI), the driver wraps the payload in a standard `struct sk_buff`(SKB), and it moves up the processing stack for TCP/IP processing, header validation, and reassembly.
+
+<Figure
+  src="/images/writing/figure1.png"
+  alt="Diagram of a packet's path from the NIC through DMA into the kernel's RX ring buffer, up the TCP/IP stack, copied to a userspace application buffer, then traversing PCIe again to reach an NVMe SSD"
+  caption="The packet's path from NIC to kernel to userspace to disk. The CPU memory copy at step 3 is the copy tax."
+  width={2000}
+  height={659}
+/>
+
+### The Copy Tax
+
+Memory is partitioned into kernel space and user space to protect the system from buggy or malicious code. So packets in ring buffers within the kernel are not accessible from userspace applications. When your database calls `read()` or `recv()`, the CPU has to manually copy those bytes from kernel-managed RAM into an user-space buffer.
+
+DMA solves part of the problem, since the CPU no longer needs to manually copy data from the NIC to ring buffers, but we're still paying a copy tax from kernel space to user space.
+
+### So What Is Zero-Copy Networking?
+
+Zero-copy networking is a set of techniques that completely eliminate CPU mediated packet copies, meaning we get packet data from the NIC directly to where its needed without an intermediate buffer that the CPU has to touch and copy over to the final destination.
+
+There are a few popularized and well known forms to achieve zero-copy networking:
+
+1. Kernel bypass techniques - kernel bypass techniques like [DPDK](https://www.dpdk.org/) and [SPDK](https://spdk.io/) allows user space applications to communicate directly with the hardware, bypassing the kernel directly. This obviously comes with many security vulnerabilities and makes application code extremely complex, as application code must take over tasks normally handled by the OS.
+2. eBPF (AF_XDP) - User space application allocates a shared buffer with a large chunk of contiguous memory and registers it with the kernel. The fill queue, completion queue, receive (RX) ring and transmit (TX) ring all live in this shared buffer, and the NIC DMAs to this buffer.
+3. RDMA - let the NIC write directly into application memory without any kernel involvement. The downside of RDMA is that it requires dedicated RDMA-capable NICs and switches, plus a fabric tuned to stay lossless, so it's a much bigger hardware commitment than the other two options.
+
+There are a few other modern methods that are super interesting, like [CXL](https://computeexpresslink.org/), but I won't go into detail into those. The method I focused on in my research was devmem/TCP, first presented at [Netdev 0x17](https://netdevconf.org/0x17/docs/netdev-0x17-paper5-talk-slides/netdev%200x17_%20Device%20Memory%20TCP%20(2).pdf).
+
+## devmem/TCP
+
+As I mentioned, devmem/TCP is a method of zero-copy networking, so how does it actually work? There are a lot of intricate details with modifications to linux source code, and I have linked my detailed notes and other sources at the very bottom of this post. I will try to explain it in a simple way.
+
+### Receive Side Scaling (RSS), Receive Flow Steering (RFS)
+
+Like CPUs add more cores to achieve higher parallelism, NICs have multiple queues for RX and TX in order to handle multiple connections at the same time and provide parallelism.
+
+**RSS (Receive Side Scaling)** is how a multi-queue NIC parallelizes RX. It hashes each packet's 5-tuple and uses the hash to pick one of N RX queues, so traffic fans out across queues (and the CPUs servicing them) instead of funnelling through one. **RFS (Receive Flow Steering)** is a related but separate mechanism: a software layer that nudges a flow's packets toward whichever CPU core the receiving application last ran on, to keep cache locality. Devmem TCP uses neither of these in the way you'd expect. It doesn't want *load balancing*; it wants one specific queue reserved and *nothing* landing there except the flow you've explicitly bound to devmem.
+
+To learn more about RSS, RPS, RFS, and aRFS, check out [this blog post](https://medium.com/@tom_84912/the-alphabet-soup-of-receive-packet-steering-rss-rps-rfs-and-arfs-c84347156d68).
+
+So the setup inverts RSS instead of leaning on it:
+
+```cpp
+# enable header split
+ethtool -G eth1 tcp-data-split on
+
+# enable ntuple (hardware) flow steering
+ethtool -K eth1 ntuple on
+
+# reconfigure RSS to steer ALL normal traffic away from queue 15,
+# leaving it empty and reserved
+ethtool --set-rxfh-indir eth1 equal 15
+```
+
+Once queue 15 is empty and isolated, userspace binds it to a `dma_buf`. A [`dma_buf`](https://docs.kernel.org/driver-api/dma-buf.html) is a Linux kernel framework for sharing a memory buffer between devices and driver subsystems (GPU, NIC, display, and so on) without copying it: one driver **exports** the buffer, and any other driver that wants to DMA into or out of it **imports** it. Once queue 15 is bound to one, the `page_pool` serving that queue hands out memory carved from the dma_buf instead of ordinary host RAM. Everything else in this section is about what happens once that binding is in place.
+
+### The Packet That Crosses the Switch Twice
+
+To understand why zero-copy networking matters for storage, look at the physical path a received packet takes on a standard Linux server when saving incoming data to disk:
+
+```
+[ Traditional Path ]
+1. NIC → PCIe Switch → Root Complex → Host RAM (DMA write)
+2. Host RAM → CPU Cache → Host RAM (Kernel-to-Userspace copy)
+3. Host RAM → Root Complex → PCIe Switch → NVMe SSD (Storage DMA write)
+
+[ Devmem TCP / P2P Path ]
+1. Header:  NIC → PCIe Switch → Root Complex → Host RAM
+2. Payload: NIC → PCIe Switch → NVMe SSD CMB (Direct P2P DMA)
+```
+
+In the traditional path, every payload byte travels across the PCIe switch twice and saturates host memory bandwidth, all for data the host CPU never mutates.
+
+### PCIe Topology and Controller Memory Buffers (CMB)
+
+PCIe is a point-to-point switched network. Endpoints connect through switches up to a Root Complex, which connects to CPU memory controllers. When two devices share a PCIe switch, data can move directly between them without traversing the Root Complex.
+
+The Root Complex is also where the **IOMMU** lives: a page table that translates a device's view of memory (an I/O Virtual Address) into a real physical address. Any DMA into host RAM has to clear it, and, as it turns out, so can peer-to-peer DMA between two devices on the same switch (more on that below).
+
+Modern NVMe drives expose memory directly to the PCIe bus using a **Controller Memory Buffer (CMB)** via a Base Address Register (BAR). Because this RAM lives on the SSD controller and is addressable over PCIe, it can act as a direct target for Direct Memory Access (DMA).
+
+### Raw P2P DMA vs. Devmem TCP
+
+Attempting raw peer-to-peer DMA between a NIC and an SSD fails because raw payload transfers lack protocol awareness. Network data arrives wrapped in TCP segments, meaning something must still handle checksums, retransmissions, acknowledgments, and congestion control.
+
+**Devmem TCP** solves this by splitting the packet processing responsibilities:
+
+- **Binding the queue**: Before any packets arrive, userspace allocates a `dma_buf` (for example, memory carved out of a GPU or an NVMe CMB) and binds it to the one reserved RX queue from the setup above.
+- **Header Split (`tcp-data-split`)**: The NIC separates packet headers from payloads. Small TCP/IP headers DMA into host RAM, where the standard Linux kernel stack handles ACKs, sequence tracking, and window sizing.
+- **Direct Payload DMA**: The device holding the destination memory (the GPU, the NVMe CMB) is the `dma_buf` **exporter**; the NIC driver is the **importer**. Packet payloads DMA directly into `PAGE_SIZE` chunks of that exported region, skipping host RAM entirely.
+- **Kernel Plumbing (`net_iov` / `netmem_ref`)**: Because `dma_buf` memory isn't backed by a standard kernel `struct page`, each chunk is wrapped in a `net_iov` instead. A `netmem_ref` is a tagged pointer that can hold either a `page` or a `net_iov`, so it now flows through `skb_frag_t`, the `page_pool` allocator, and the rest of the networking stack in place of a raw page pointer. The resulting SKB is flagged as device-memory backed (`skb->devmem`), which tells the TCP stack it can still read headers for its usual bookkeeping, but it must never touch the payload bytes directly: they aren't in host memory to begin with.
+- **Userspace Interface**: `recvmsg()` returns a control message (a cmsg) containing an offset and length into the `dma_buf`, instead of a copy of the bytes. The application maps the `dma_buf` once up front and just resolves offsets against it from then on. When it's done with a fragment, it calls `setsockopt()` to tell the kernel the memory can be recycled back into the page pool.
+
+### Why Devmem TCP Over RDMA?
+
+While RDMA (RoCEv2/InfiniBand) bypasses the OS entirely for direct memory writes, it introduces strict operational trade-offs:
+
+| Feature | RDMA (RoCEv2 / InfiniBand) | Devmem TCP |
+| --- | --- | --- |
+| **Protocol** | Custom RDMA transport | Standard TCP/IP |
+| **Middlebox Support** | Requires lossy/lossless fabric support | Compatible with standard routers & firewalls |
+| **Congestion Control** | Hardware-managed (PFC/ECN) | Standard kernel TCP congestion control |
+| **Hardware Requirements** | Dedicated RDMA NICs & switches | NIC with header-split & `page_pool` support |
+
+Google actually tested this in production on their Cloud A3 VMs, running devmem TCP between NICs and GPUs. They hit about 96% of line rate, 192 Gbps bidirectional per NIC/GPU pair. That's roughly 3x the throughput of a regular TCP-based NCCL transport, and it gets close to RDMA-based NCCL once message sizes are large enough to amortize the setup cost. All of that on plain TCP/IP, without swapping in different switches, cabling, or congestion control.
+
+### Existing Challenges in Storage Systems
+
+While devmem TCP functions effectively with GPUs and synthetic memory drivers (`udmabuf`), applying it directly to NVMe storage faces three main hurdles:
+
+1. **Missing `dma_buf` Exporters**: Linux NVMe drivers do not yet expose SSD Controller Memory Buffers as standard `dma_buf` exporters out of the box. There's prior work on P2P DMA for NVMe drivers specifically, but support isn't universal yet. The devmem TCP authors themselves have said they've never tested against a real SSD, though they expect it to work once a CMB can be presented as a `dma_buf`.
+2. **PCIe Access Control Services (ACS)**: Security policies often force Transaction Layer Packets (TLPs) upstream through the Root Complex for IOMMU access checks, preventing local PCIe switch routing unless explicitly configured. That's a lever you generally need to control the hardware to pull; it's not something available on most shared cloud infrastructure.
+3. **Bare-Metal Constraints**: Virtualized NIC drivers (`virtio-net`) lack multi-queue RSS and hardware header-split support, requiring bare-metal deployments or SR-IOV passthrough. I hit this firsthand setting up a test VM: its virtio-net interface exposed a single queue with no RSS or header-split support at all, so there was no way to even reserve an isolated queue for devmem TCP without dropping to real hardware.
+
+## Summary: Is the Future of Databases Zero-Copy?
+
+For general-purpose OLTP databases where the CPU actively parses, indexes, and mutates record payloads in host RAM, zero-copy networking provides minimal benefit.
+
+But for **distributed storage architectures**, **WAL shipping**, **database replication**, and **block-level storage nodes**, zero-copy networking via devmem TCP is a real win. Cut out the double PCIe traversal and the host DRAM bottleneck, and a high-throughput storage engine can push a lot more data over the network without burning CPU cycles doing it.
+
+Most SSDs on the market today don't support or even expose a CMB, and the ones that do are enterprise drives that run into the thousands of dollars. It's possible to do this work with FPGAs instead, so if that's something you're interested in, reach out to me via [email](mailto:yunfengzhang789@gmail.com).
+
+I want to thank [Prof. Martin Karsten](https://cs.uwaterloo.ca/~mkarsten/) for supervising me this summer. Devmem TCP was only part of what I got to work on. I also spent time benchmarking memcached and playing around with kernel bypass, and going into this research I hadn't even taken Operating Systems yet, so I learned a huge amount in a short period of time. Really grateful for the opportunity.
+
+## Sources to Learn More
+
+My full research notes, including everything below and a lot more, are here:
+
+- [Week 1 (Apr 30 – May 6)](https://app.notion.com/p/Week-1-30-Apr-May-6-35947d0260c780daa4eadb2c5659ef9c?source=copy_link)
+- [Week 2 (May 7 – May 13)](https://app.notion.com/p/Week-2-May-7-May-13-35947d0260c7803c8ae9e7b4f546bc9e?source=copy_link)
+
+A few of the sources I found most useful while researching devmem/TCP specifically:
+
+- [Device Memory TCP, talk slides from Netdev 0x17](https://netdevconf.org/0x17/docs/netdev-0x17-paper5-talk-slides/netdev%200x17_%20Device%20Memory%20TCP%20(2).pdf)
+- [Device Memory TCP, LWN](https://lwn.net/Articles/937882/)
+- [The devmem TCP RX kernel commit](https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=ac4d1baf97fdaa6ef789273f0fd485c0d0d6f100)
+- [`net_iov` struct definition, Linux source](https://github.com/torvalds/linux/blob/master/include/net/netmem.h#L95)
+- [dma-buf: A buffer sharing framework for Linux](https://docs.kernel.org/driver-api/dma-buf.html)
+- [Steven Bates' peer-to-peer DMA work for NVMe, LWN](https://lwn.net/Articles/931668/)
+- [Enabling the NVMe CMB and PMR Ecosystem, NVM Express](https://nvmexpress.org/wp-content/uploads/Session-2-Enabling-the-NVMe-CMB-and-PMR-Ecosystem-Eideticom-and-Mell....pdf)
+- [NVM Express intro whitepaper](https://nvmexpress.org/wp-content/uploads/2013/04/NVM_whitepaper.pdf)
+- [P2PMem/P2PDMA, USENIX NSDI '23](https://www.usenix.org/conference/nsdi23/presentation/kim-taehyun)
+- [RDMA overview, DigitalOcean](https://www.digitalocean.com/community/conceptual-articles/rdma-high-performance-networking)
